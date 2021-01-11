@@ -1,33 +1,44 @@
 require File.dirname(__FILE__) + "/log"
 require File.dirname(__FILE__) + "/information"
+require "selenium-webdriver"
 
 class MainProcess
   class << self
+    def init_selenium_driver
+        Log.info "Init driver"
+        Selenium::WebDriver.logger.output = File.join("./tmp", "selenium.log")
+        Selenium::WebDriver.logger.level = :warn
+        Selenium::WebDriver.for :chrome
+    end
+
     def call!
-      Log.info "Start to craw data"
+        baseconnect_home_page = "https://baseconnect.in"
 
-      # TODO:
-      Log.info "Access to baseconnect.in"
+        Log.info "Start to craw data"
 
-      # TODO: Get all home_headlink + name
-      Log.info "Get all home_headlink"
+        driver = init_selenium_driver
 
-      home_headlinks = [
-        {
-          name: "小売業界の会社",
-          link: "https://baseconnect.in" + "/companies/category/ba7eb4c7-40b7-466b-a2be-d0a8257d7974"
-        }
-      ]
+        Log.info "Access to baseconnect.in"
+        driver.get baseconnect_home_page
 
-      
+        # TODO: Get all home_headlink + name
+        Log.info "Get all home_headlinks"
 
-      home_headlinks.each_with_index do |home_headlink, index|
-          # TODO
-          Log.info "------------------------------------------------------------"
-          craw_for_a_category home_headlink, index
-      end
+        home_headlinks = [
+            {
+                name: "小売業界の会社",
+                link: baseconnect_home_page + "/companies/category/ba7eb4c7-40b7-466b-a2be-d0a8257d7974"
+            }
+        ]
 
-      Log.info "End MainProcess#call!"
+        home_headlinks.each_with_index do |home_headlink, index|
+            # TODO
+            Log.info "------------------------------------------------------------"
+            craw_for_a_category home_headlink, index
+        end
+
+        driver.quit
+        Log.info "End MainProcess#call!"
     end
 
     def craw_for_a_category home_headlink, index
