@@ -2,6 +2,7 @@ require File.dirname(__FILE__) + "/log"
 require File.dirname(__FILE__) + "/information"
 require "selenium-webdriver"
 require "pry"
+require "csv"
 
 class MainProcess
   class << self
@@ -38,7 +39,7 @@ class MainProcess
     def craw_for_a_category home_headlink, index, driver
         baseconnect_companies_list = []
         result = []
-        max_page = 2
+        max_page = 1
 
         (1..max_page).each do |page|
             category_index_link = home_headlink[:link] + (page == 1 ? "" : "?page=#{page}")
@@ -61,7 +62,6 @@ class MainProcess
             #    result << craw_a_company(company, index, page, driver)
             #end
             result << craw_a_company(baseconnect_companies_list.first, 0, page, driver)
-            binding.pry
           
             Log.info "#{index + 1}:\t#{page}:\tCrawed companies count: #{baseconnect_companies_list.size}"
 
@@ -79,7 +79,7 @@ class MainProcess
 
         other_sites = driver.find_elements(:css, ".node__box__heading__link.node__box__heading__link-othersite a")
         basic_infors = driver.find_elements(:css, ".node__box.node__basicinfo .nodeTable--simple.nodeTable--simple__twoColumn.nodeTable--simple__twoColumn_side.cf dl")
-        
+        address_info = get_address_info driver
         {
             name: driver.find_elements(:css, ".node__header__text__title").first&.attribute("innerHTML").to_s,
             home_page: other_sites[0]&.attribute("href"),
@@ -88,9 +88,22 @@ class MainProcess
             capital_stock: get_basic_info(basic_infors, :capital_stock),
             emp_num: get_basic_info(basic_infors, :emp_num).to_i,
             listed_market: get_basic_info(basic_infors, :listed_market),
-            postcode: "110-0015",
-            province: "東京",
-            address: "東京都台東区東上野２丁目１６番１号"
+            postcode: address_info[:postcode].to_s,
+            province: address_info[:province].to_s,
+            address: address_info[:address].to_s
+        }
+    end
+
+    def get_address_info driver
+        element = driver.find_elements(:css, ".nodeTable--simple.nodeTable--simple__oneColumn.cf dl dd p").first
+        return {} if element.nil?
+
+        addr_info = element.attribute("innerHTML").split("<br>")
+        address = addr_info[1].strip!
+        {
+            postcode: addr_info[0].strip!,
+            address: address,
+            province: address.split(/都|県/)[0]
         }
     end
 
@@ -99,7 +112,7 @@ class MainProcess
             established_date: "設立年月",
             capital_stock: "資本金",
             emp_num: "従業員数",
-            listed_market: "従業員数"
+            listed_market: "上場市場"
         }
 
         element = basic_infors.detect do |info|
