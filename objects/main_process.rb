@@ -66,7 +66,10 @@ class MainProcess
             Log.info "#{index + 1}:\t#{page}:\tCrawed companies count: #{baseconnect_companies_list.size}"
 
             write_to_spread_sheet home_headlink, result, index, page
-            
+
+            File.open("./tmp/last_crawed_infor.txt", "w") do |file|
+                file.write("Category: #{home_headlink[:name]}\nCategoryLink: #{home_headlink[:link]}\nPage: #{page}")
+            end
 
             baseconnect_companies_list.clear
             result.clear
