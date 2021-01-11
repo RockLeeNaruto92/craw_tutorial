@@ -1,6 +1,7 @@
 require File.dirname(__FILE__) + "/log"
 require File.dirname(__FILE__) + "/information"
 require "selenium-webdriver"
+require "pry"
 
 class MainProcess
   class << self
@@ -21,15 +22,7 @@ class MainProcess
         Log.info "Access to baseconnect.in"
         driver.get baseconnect_home_page
 
-        # TODO: Get all home_headlink + name
-        Log.info "Get all home_headlinks"
-
-        home_headlinks = [
-            {
-                name: "小売業界の会社",
-                link: baseconnect_home_page + "/companies/category/ba7eb4c7-40b7-466b-a2be-d0a8257d7974"
-            }
-        ]
+        home_headlinks = get_all_home_headlinks driver
 
         home_headlinks.each_with_index do |home_headlink, index|
             # TODO
@@ -44,8 +37,9 @@ class MainProcess
     def craw_for_a_category home_headlink, index
         baseconnect_companies_list = []
         result = []
+        max_page = 2
 
-        (1..200).each do |page|
+        (1..max_page).each do |page|
             category_index_link = home_headlink[:link] + (page == 1 ? "" : "?page=#{page}")
             Log.info "#{index + 1}:\t#{page}\tAccess to #{category_index_link}"
             Log.info "\t\tRetrieve companies link"
@@ -63,10 +57,7 @@ class MainProcess
           
             Log.info "#{index + 1}:\t#{page}:\tCrawed companies count: #{baseconnect_companies_list.size}"
 
-            # TODO
-            Log.info "#{index + 1}:\t#{page}:\tWrite to spread sheet"
-
-            write_to_spread_sheet home_headlink, result
+            write_to_spread_sheet home_headlink, result, index, page
 
             baseconnect_companies_list.clear
             result.clear
@@ -91,9 +82,22 @@ class MainProcess
         }
     end
 
-    def write_to_spread_sheet home_headlink, result
+    def get_all_home_headlinks driver
+        Log.info "Get all home_headlinks"
+
+        elements = driver.find_elements(:css, ".home__headlink")
+        elements.map do |element|
+            name = 
+            {
+                name: element.find_element(:css, "h3").attribute("innerHTML"),
+                link: element.attribute("href")
+            }
+        end
+    end
+
+    def write_to_spread_sheet home_headlink, result, index, page
         # TODO
-        Log.info "Write to speadsheet"
+        Log.info "#{index + 1}:\t#{page}:\tWrite to spread sheet"
     end
   end
 end
