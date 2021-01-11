@@ -61,18 +61,19 @@ class MainProcess
             #baseconnect_companies_list.each do |company|
             #    result << craw_a_company(company, index, page, driver)
             #end
-            result << craw_a_company(baseconnect_companies_list.first, 0, page, driver)
+            result << craw_a_company(baseconnect_companies_list.first, 0, page, driver, home_headlink)
           
             Log.info "#{index + 1}:\t#{page}:\tCrawed companies count: #{baseconnect_companies_list.size}"
 
             write_to_spread_sheet home_headlink, result, index, page
+            
 
             baseconnect_companies_list.clear
             result.clear
         end
     end
 
-    def craw_a_company company, index, page, driver
+    def craw_a_company company, index, page, driver, home_headlink
         Log.info "#{index + 1}:\t#{page}:\tCraw #{company[:name]}"
         Log.info "#{index + 1}:\t#{page}:\t\t□ Access to #{company[:detail_link]}"
         driver.get(company[:detail_link])
@@ -81,6 +82,7 @@ class MainProcess
         basic_infors = driver.find_elements(:css, ".node__box.node__basicinfo .nodeTable--simple.nodeTable--simple__twoColumn.nodeTable--simple__twoColumn_side.cf dl")
         address_info = get_address_info driver
         {
+            category_name: home_headlink[:name],
             name: driver.find_elements(:css, ".node__header__text__title").first&.attribute("innerHTML").to_s,
             home_page: other_sites[0]&.attribute("href"),
             contact_page: other_sites[1]&.attribute("href"),
@@ -135,8 +137,13 @@ class MainProcess
     end
 
     def write_to_spread_sheet home_headlink, result, index, page
-        # TODO
         Log.info "#{index + 1}:\t#{page}:\tWrite to spread sheet"
+
+        CSV.open("data.csv", "a+") do |csv|
+          result.each do |company|
+            csv << company.values
+          end
+        end
     end
   end
 end
