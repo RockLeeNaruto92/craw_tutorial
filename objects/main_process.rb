@@ -1,5 +1,4 @@
 require File.dirname(__FILE__) + "/log"
-require File.dirname(__FILE__) + "/information"
 require "selenium-webdriver"
 require "pry"
 require "csv"
@@ -25,12 +24,12 @@ class MainProcess
 
         home_headlinks = get_all_home_headlinks driver
 
-        #home_headlinks.each_with_index do |home_headlink, index|
-        #    Log.info "------------------------------------------------------------"
-        #    craw_for_a_category home_headlink, index, driver
-        #end
+        home_headlinks.each_with_index do |home_headlink, index|
+            Log.info "------------------------------------------------------------"
+            craw_for_a_category home_headlink, index, driver
+        end
 
-        craw_for_a_category home_headlinks.first, 0, driver
+        # craw_for_a_category home_headlinks.first, 0, driver
 
         driver.quit
         Log.info "End MainProcess#call!"
@@ -39,9 +38,12 @@ class MainProcess
     def craw_for_a_category home_headlink, index, driver
         baseconnect_companies_list = []
         result = []
-        max_page = 1
+        max_page = 200
+        
 
-        (1..max_page).each do |page|
+        start_page = 1
+
+        (start_page..max_page).each do |page|
             category_index_link = home_headlink[:link] + (page == 1 ? "" : "?page=#{page}")
             Log.info "#{index + 1}:\t#{page}\tAccess to #{category_index_link}"
             driver.get category_index_link
@@ -58,10 +60,10 @@ class MainProcess
                 }
             end
 
-            #baseconnect_companies_list.each do |company|
-            #    result << craw_a_company(company, index, page, driver)
-            #end
-            result << craw_a_company(baseconnect_companies_list.first, 0, page, driver, home_headlink)
+            baseconnect_companies_list.each do |company|
+                result << craw_a_company(company, index, page, driver, home_headlink)
+            end
+            #result << craw_a_company(baseconnect_companies_list.first, 0, page, driver, home_headlink)
           
             Log.info "#{index + 1}:\t#{page}:\tCrawed companies count: #{baseconnect_companies_list.size}"
 
@@ -124,25 +126,64 @@ class MainProcess
             mapping_info[info_name] == info.find_elements(:css, "dt").first&.attribute("innerHTML")
         end
 
-        return element.find_elements(:css, "dd").first&.attribute("innerHTML")
+        return "" if element.nil?
+
+        return element.find_elements(:css, "dd").first&.attribute("innerHTML").to_s
     end
 
     def get_all_home_headlinks driver
         Log.info "Get all home_headlinks"
 
         elements = driver.find_elements(:css, ".home__headlink")
-        elements.map do |element|
+        # elements.map do |element|
+        #    {
+        #        name: element.find_element(:css, "h3").attribute("innerHTML"),
+        #        link: element.attribute("href")
+        #    }
+        [
             {
-                name: element.find_element(:css, "h3").attribute("innerHTML"),
-                link: element.attribute("href")
+                name: "システム受託開発業界の会社",
+                link: "https://baseconnect.in/companies/category/a2b5e24f-c628-44e5-a341-b6e4a6e4f0e3"
+            },
+            {
+                name: "システム開発業界の会社",
+                link: "https://baseconnect.in/companies/category/377d61f9-f6d3-4474-a6aa-4f14e3fd9b17"
+            },
+            {
+                name: "Webサービス・アプリ運営業界の会社",
+                link: "https://baseconnect.in/companies/category/b1d5c1e6-7cc5-41c4-9552-28530d2c9e9c"
+            },
+            {
+                name: "シITインフラ業界の会社",
+                link: "https://baseconnect.in/companies/category/a14a8e55-2735-4844-841e-73fef92a3596"
+            },
+            {
+                name: "ソフトウェア専門商社業界の会社",
+                link: "https://baseconnect.in/companies/category/699e937a-ca46-4b5b-be76-80b6d4a41c5d"
+            },
+            {
+                name: "デジタルコンテンツ業界の会社",
+                link: "https://baseconnect.in/companies/category/37b7583c-431d-408d-ac66-fd1a18f84c41"
+            },
+            {
+                name: "クラウド・フィンテック業界の会社",
+                link: "https://baseconnect.in/companies/category/578d6793-48f8-4776-906f-756a0b42f195"
+            },
+            {
+                name: "情報セキュリティサービス業界の会社",
+                link: "https://baseconnect.in/companies/category/c26b945f-0529-4ec1-a43f-dc9750e7fbdd"
+            },
+            {
+                name: "その他IT業界の会社",
+                link: "https://baseconnect.in/companies/category/9b4a37c1-d034-4a37-a448-c852cbbb0f40"
             }
-        end
+        ]
     end
 
     def write_to_spread_sheet home_headlink, result, index, page
         Log.info "#{index + 1}:\t#{page}:\tWrite to spread sheet"
 
-        CSV.open("data.csv", "a+") do |csv|
+        CSV.open("ITCompany#{Time.now.strftime("%Y%m%d")}.csv", "a+") do |csv|
           result.each do |company|
             csv << company.values
           end
