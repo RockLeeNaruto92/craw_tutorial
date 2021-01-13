@@ -19,6 +19,13 @@
 
 - Bật commandos
 - cd vào trong folder `craw`. (Các huynh đài, tỉ muội nào chưa chạy lệnh trên commandos bao giờ thì vui lòng liên hệ với các huynh đệ bên cạnh để được hướng dẫn)
+- Chạy các lệnh sau:
+
+```
+gem install bundler -v 1.15.1
+bundle install
+```
+
 - Sửa tí code như sau: 
   - Bật cái file `objects/main_process.rb`
   - Từ dòng 143 → 180 thấy có cái code như sau:
