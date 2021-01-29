@@ -29,7 +29,9 @@ class MainProcess
             craw_for_a_category home_headlink, index, driver
         end
 
-        # craw_for_a_category home_headlinks.first, 0, driver
+        craw_for_a_category home_headlinks.first, 0, driver
+
+        sleep 10
 
         driver.quit
         Log.info "End MainProcess#call!"
@@ -39,7 +41,6 @@ class MainProcess
         baseconnect_companies_list = []
         result = []
         max_page = 200
-        
 
         start_page = 1
 
@@ -134,7 +135,7 @@ class MainProcess
     def get_all_home_headlinks driver
         Log.info "Get all home_headlinks"
 
-        elements = driver.find_elements(:css, ".home__headlink")
+        # elements = driver.find_elements(:css, ".home__headlink")
         # elements.map do |element|
         #    {
         #        name: element.find_element(:css, "h3").attribute("innerHTML"),
@@ -142,40 +143,8 @@ class MainProcess
         #    }
         [
             {
-                name: "システム受託開発業界の会社",
-                link: "https://baseconnect.in/companies/category/a2b5e24f-c628-44e5-a341-b6e4a6e4f0e3"
-            },
-            {
-                name: "システム開発業界の会社",
-                link: "https://baseconnect.in/companies/category/377d61f9-f6d3-4474-a6aa-4f14e3fd9b17"
-            },
-            {
-                name: "Webサービス・アプリ運営業界の会社",
-                link: "https://baseconnect.in/companies/category/b1d5c1e6-7cc5-41c4-9552-28530d2c9e9c"
-            },
-            {
-                name: "シITインフラ業界の会社",
-                link: "https://baseconnect.in/companies/category/a14a8e55-2735-4844-841e-73fef92a3596"
-            },
-            {
-                name: "ソフトウェア専門商社業界の会社",
-                link: "https://baseconnect.in/companies/category/699e937a-ca46-4b5b-be76-80b6d4a41c5d"
-            },
-            {
-                name: "デジタルコンテンツ業界の会社",
-                link: "https://baseconnect.in/companies/category/37b7583c-431d-408d-ac66-fd1a18f84c41"
-            },
-            {
-                name: "クラウド・フィンテック業界の会社",
-                link: "https://baseconnect.in/companies/category/578d6793-48f8-4776-906f-756a0b42f195"
-            },
-            {
-                name: "情報セキュリティサービス業界の会社",
-                link: "https://baseconnect.in/companies/category/c26b945f-0529-4ec1-a43f-dc9750e7fbdd"
-            },
-            {
-                name: "その他IT業界の会社",
-                link: "https://baseconnect.in/companies/category/9b4a37c1-d034-4a37-a448-c852cbbb0f40"
+                name: "大阪",
+                link: "https://baseconnect.in/companies/prefecture/d80b180e-5fd9-4082-8cdc-a510179a3475/category/377d61f9-f6d3-4474-a6aa-4f14e3fd9b17"
             }
         ]
     end
