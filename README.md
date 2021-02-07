@@ -12,10 +12,13 @@
 
 #### Download hoặc clone source code
 - Download source code hoặc clone source code từ link này.
-- Extract ra thành 1 folder. Gọi là folder `craw`.
+- Extract ra thành 1 folder. Gọi là folder `crawFb`.
 - Các tỉ muội chưa biết cách download hay clone source code vui lòng liên hệ với các huynh đệ bên cạnh để được support.
 
 #### Chạy
+
+Các bước để lấy dữ liệu trên facebook thì nó sẽ có các bước sau:
+
 
 - Bật commandos
 - cd vào trong folder `craw`. (Các huynh đài, tỉ muội nào chưa chạy lệnh trên commandos bao giờ thì vui lòng liên hệ với các huynh đệ bên cạnh để được hướng dẫn)

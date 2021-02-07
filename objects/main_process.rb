@@ -5,158 +5,206 @@ require "csv"
 
 class MainProcess
   class << self
+    WORKING_AT_ICON = "https://static.xx.fbcdn.net/rsrc.php/v3/yy/r/2b4AYlZqdlw.png"
+    STUDIED_AT_ICON = "https://static.xx.fbcdn.net/rsrc.php/v3/yU/r/_kTTuiBidlL.png"
+    FROM_ICON = "https://static.xx.fbcdn.net/rsrc.php/v3/yr/r/aw-eU53JG-u.png"
+    LIVES_AT_ICON = "https://static.xx.fbcdn.net/rsrc.php/v3/y4/r/HNzy6p26p_d.png"
+    SEX_ICON = "https://static.xx.fbcdn.net/rsrc.php/v3/yj/r/qXTmWu_dlXK.png"
+    BIRTH_DAY_ICON = "https://static.xx.fbcdn.net/rsrc.php/v3/yT/r/fzYWd7dALbn.png"
+
     def init_selenium_driver
         Log.info "Init driver"
         Selenium::WebDriver.logger.output = File.join("./tmp", "selenium.log")
         Selenium::WebDriver.logger.level = :warn
-        Selenium::WebDriver.for :chrome
+        Selenium::WebDriver.for :firefox
     end
 
     def call!
-        baseconnect_home_page = "https://baseconnect.in"
+        @facebook_home_page = "https://www.facebook.com"
+        @driver = init_selenium_driver
 
-        Log.info "Start to craw data"
+        login_facebook
 
-        driver = init_selenium_driver
+        group_users_links = retrieve_group_users_link
 
-        Log.info "Access to baseconnect.in"
-        driver.get baseconnect_home_page
+        Log.info "Number of user link: #{group_users_links.length}"
 
-        home_headlinks = get_all_home_headlinks driver
+        user_infos = []
+        uinfo = nil
 
-        home_headlinks.each_with_index do |home_headlink, index|
-            Log.info "------------------------------------------------------------"
-            craw_for_a_category home_headlink, index, driver
+        group_users_links.each_with_index do |gul, index|
+            uinfo = craw_user_data gul, index
+            user_infos << uinfo unless uinfo.nil?
+            uinfo = nil
+
+            if user_infos.length == 50
+                write_to_csv user_infos
+                user_infos.clear
+            end
         end
 
-        craw_for_a_category home_headlinks.first, 0, driver
+        write_to_csv user_infos
 
-        sleep 10
+        @driver.quit
 
-        driver.quit
         Log.info "End MainProcess#call!"
     end
 
-    def craw_for_a_category home_headlink, index, driver
-        baseconnect_companies_list = []
-        result = []
-        max_page = 200
+    def write_to_csv user_infos
+        Log.info "Write to csv"
 
-        start_page = 1
-
-        (start_page..max_page).each do |page|
-            category_index_link = home_headlink[:link] + (page == 1 ? "" : "?page=#{page}")
-            Log.info "#{index + 1}:\t#{page}\tAccess to #{category_index_link}"
-            driver.get category_index_link
-            Log.info "\t\tRetrieve companies link"
-
-            elements = driver.find_elements(:css, ".searches__result__list__header__title a")
-
-            break if elements.empty?
-
-            baseconnect_companies_list = elements.map do |element|
-                {
-                    name: element.attribute("innerHTML"),
-                    detail_link: element.attribute("href")
-                }
-            end
-
-            baseconnect_companies_list.each do |company|
-                result << craw_a_company(company, index, page, driver, home_headlink)
-            end
-            #result << craw_a_company(baseconnect_companies_list.first, 0, page, driver, home_headlink)
-          
-            Log.info "#{index + 1}:\t#{page}:\tCrawed companies count: #{baseconnect_companies_list.size}"
-
-            write_to_spread_sheet home_headlink, result, index, page
-
-            File.open("./tmp/last_crawed_infor.txt", "w") do |file|
-                file.write("Category: #{home_headlink[:name]}\nCategoryLink: #{home_headlink[:link]}\nPage: #{page}")
-            end
-
-            baseconnect_companies_list.clear
-            result.clear
-        end
-    end
-
-    def craw_a_company company, index, page, driver, home_headlink
-        Log.info "#{index + 1}:\t#{page}:\tCraw #{company[:name]}"
-        Log.info "#{index + 1}:\t#{page}:\t\t□ Access to #{company[:detail_link]}"
-        driver.get(company[:detail_link])
-
-        other_sites = driver.find_elements(:css, ".node__box__heading__link.node__box__heading__link-othersite a")
-        basic_infors = driver.find_elements(:css, ".node__box.node__basicinfo .nodeTable--simple.nodeTable--simple__twoColumn.nodeTable--simple__twoColumn_side.cf dl")
-        address_info = get_address_info driver
-        {
-            category_name: home_headlink[:name],
-            name: driver.find_elements(:css, ".node__header__text__title").first&.attribute("innerHTML").to_s,
-            home_page: other_sites[0]&.attribute("href"),
-            contact_page: other_sites[1]&.attribute("href"),
-            established_date: get_basic_info(basic_infors, :established_date),
-            capital_stock: get_basic_info(basic_infors, :capital_stock),
-            emp_num: get_basic_info(basic_infors, :emp_num).to_i,
-            listed_market: get_basic_info(basic_infors, :listed_market),
-            postcode: address_info[:postcode].to_s,
-            province: address_info[:province].to_s,
-            address: address_info[:address].to_s
-        }
-    end
-
-    def get_address_info driver
-        element = driver.find_elements(:css, ".nodeTable--simple.nodeTable--simple__oneColumn.cf dl dd p").first
-        return {} if element.nil?
-
-        addr_info = element.attribute("innerHTML").split("<br>")
-        address = addr_info[1].strip!
-        {
-            postcode: addr_info[0].strip!,
-            address: address,
-            province: address.split(/都|県/)[0]
-        }
-    end
-
-    def get_basic_info basic_infors, info_name
-        mapping_info = {
-            established_date: "設立年月",
-            capital_stock: "資本金",
-            emp_num: "従業員数",
-            listed_market: "上場市場"
-        }
-
-        element = basic_infors.detect do |info|
-            mapping_info[info_name] == info.find_elements(:css, "dt").first&.attribute("innerHTML")
-        end
-
-        return "" if element.nil?
-
-        return element.find_elements(:css, "dd").first&.attribute("innerHTML").to_s
-    end
-
-    def get_all_home_headlinks driver
-        Log.info "Get all home_headlinks"
-
-        # elements = driver.find_elements(:css, ".home__headlink")
-        # elements.map do |element|
-        #    {
-        #        name: element.find_element(:css, "h3").attribute("innerHTML"),
-        #        link: element.attribute("href")
-        #    }
-        [
-            {
-                name: "大阪",
-                link: "https://baseconnect.in/companies/prefecture/d80b180e-5fd9-4082-8cdc-a510179a3475/category/377d61f9-f6d3-4474-a6aa-4f14e3fd9b17"
-            }
-        ]
-    end
-
-    def write_to_spread_sheet home_headlink, result, index, page
-        Log.info "#{index + 1}:\t#{page}:\tWrite to spread sheet"
-
-        CSV.open("ITCompany#{Time.now.strftime("%Y%m%d")}.csv", "a+") do |csv|
-          result.each do |company|
-            csv << company.values
+        CSV.open("user_infos.csv", "a+") do |csv|
+          user_infos.each do |user_info|
+            csv << user_info.values
           end
         end
+    end
+
+    def craw_user_data group_user_link, index
+        user_data = {}
+
+        @driver.get group_user_link
+        Log.info "#{index}\t: Accessed to #{group_user_link}"
+
+        sleep 5
+
+        profile_link = @driver.find_elements(:css, "a[href*='https://www.facebook.com/profile.php?']")&.first
+
+        if profile_link.nil?
+            Log.warning "\t\tDo not existed link #{group_user_link}"
+            return
+        end
+
+        profile_link.click
+        Log.info "\t\tAccessed to profile page"
+        sleep 3
+
+        profile_page = @driver.current_url
+
+        user_data[:profile_link] = profile_page
+
+        # name
+        h1_elements = @driver.find_elements(:css, "h1")
+        h1_elements.each do |el|
+            unless el.attribute("innerText").include?("Thông báo")
+                user_data[:name] = el.attribute("innerText") 
+            end
+        end
+
+        overview_page = if profile_page.include?("profile.php?id=")
+            "#{profile_page}&sk=about_overview"
+        else
+            "#{profile_page}about_overview"
+        end
+        @driver.get overview_page
+        Log.info "\t\t\tAccessed to overview page"
+        sleep 3
+
+        # Working place
+        working_at_img = @driver.find_elements(:css, "img[src='#{WORKING_AT_ICON}']")&.first
+        container = working_at_img&.find_elements(:xpath, "../..")&.first
+        working_place_link = container&.find_elements(:css, "a")&.first
+        user_data[:working_place] = working_place_link&.attribute("innerText")
+        Log.info "\t\t\tWorking place: #{user_data[:working_place]}"
+
+        # Studied school
+        studied_at_img = @driver.find_elements(:css, "img[src='#{STUDIED_AT_ICON}']")&.first
+        container = studied_at_img&.find_elements(:xpath, "../..")&.first
+        studied_at_div = container&.find_elements(:css, "div > div")&.first
+        user_data[:studied_school] = studied_at_div&.attribute("innerText")
+        Log.info "\t\t\tStudied school: #{user_data[:studied_school]}"
+
+        # Lives at
+        lives_at_img = @driver.find_elements(:css, "img[src='#{LIVES_AT_ICON}']")&.first
+        container = lives_at_img&.find_elements(:xpath, "../..")&.first
+        lives_at_link = container&.find_elements(:css, "a")&.first
+        user_data[:lives_at] = lives_at_link&.attribute("innerText")
+        Log.info "\t\t\tLives at: #{user_data[:lives_at]}"
+
+        # From
+        from_img = @driver.find_elements(:css, "img[src='#{FROM_ICON}']")&.first
+        container = from_img&.find_elements(:xpath, "../..")&.first
+        lives_at_link = container&.find_elements(:css, "a")&.first
+        user_data[:from] = lives_at_link&.attribute("innerText")
+        Log.info "\t\t\tfrom: #{user_data[:from]}"
+
+        sleep 1
+
+        contact_and_basic_info_page = if profile_page.include?("profile.php?id=")
+            "#{profile_page}&sk=about_contact_and_basic_info"
+        else
+            "#{profile_page}about_contact_and_basic_info"
+        end
+        @driver.get contact_and_basic_info_page
+        Log.info "\t\t\tAccessed to contact and basic info page"
+
+        sleep 3
+
+        # Sex
+        sex_img = @driver.find_elements(:css, "img[src='#{SEX_ICON}']")&.first
+        container = sex_img&.find_elements(:xpath, "../..")&.first
+        sex_span = container&.find_elements(:css, "div > div > div > div > div > div > span ")&.first
+        user_data[:sex] = sex_span&.attribute("innerText")
+        Log.info "\t\t\tSex: #{user_data[:sex]}"
+
+        # Birthday
+        birthday_img = @driver.find_elements(:css, "img[src='#{BIRTH_DAY_ICON}']")&.first
+        container = birthday_img&.find_elements(:xpath, "../..")&.first
+        birth_spans = container&.find_elements(:css, "div > div > div > div > div > div > span")
+        
+        if !birth_spans.nil?
+            user_data[:birth_day] = birth_spans[0]&.attribute("innerText")
+            user_data[:birth_year] = birth_spans[2]&.attribute("innerText")
+        end
+        Log.info "\t\t\tBirthday: #{user_data[:birth_day]}"
+        Log.info "\t\t\tBirthyear: #{user_data[:birth_year]}"
+
+        return user_data
+    end
+    
+    def retrieve_group_users_link
+        file = File.open("./group_users_link.csv", "r")
+        data = file.readlines.map &:chomp
+        file.close
+        
+        data.uniq!
+        return data
+    end
+
+    def login_facebook
+        @driver.get @facebook_home_page
+        Log.info "Accessed to facebook home page"
+
+        fb_account = get_fb_account_info
+
+        email_field = @driver.find_elements(:css, "input#email").first
+        email_field.send_keys fb_account[:username]
+        Log.info "Inputed to username"
+
+        sleep 2
+
+        password_field = @driver.find_elements(:css, "input#pass").first
+        password_field.send_keys fb_account[:password]
+        Log.info "Inputed to password"
+
+        sleep 2
+
+        login_btn = @driver.find_elements(:css, "button[name='login']").first
+        login_btn.click
+        Log.info "Clicked Login button"
+
+        sleep 10
+    end
+
+    def get_fb_account_info
+       file = File.open("./configs/fb.txt", "r")
+       account_data = file.readlines.map &:chomp
+       file.close
+
+       {
+          username: account_data[0],
+          password: account_data[1]
+       }
     end
   end
 end
