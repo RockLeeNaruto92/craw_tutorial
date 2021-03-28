@@ -20,30 +20,27 @@ class MainProcess
     end
 
     def call!
-        @facebook_home_page = "https://www.facebook.com"
         @driver = init_selenium_driver
 
-        login_facebook
-
-        group_users_links = retrieve_group_users_link
-
-        Log.info "Number of user link: #{group_users_links.length}"
+        login_tuha
+        # Wait for 10 seconds
+        uncheck_all_date_checkbox
+        # Wait for 10 seconds
+        check_all_status_checkbox
+        # Wait for 10 seconds
 
         user_infos = []
-        uinfo = nil
+        (1..3567).each do |page_number|
+            click_to_page page_number
+            # wait 5 seconds
+            user_ids = get_all_user_ids
 
-        group_users_links.each_with_index do |gul, index|
-            uinfo = craw_user_data gul, index
-            user_infos << uinfo unless uinfo.nil?
-            uinfo = nil
-
-            if user_infos.length == 50
-                write_to_csv user_infos
-                user_infos.clear
+            user_ids.each do |id|
+                user_infos << craw_user_data(id)
             end
+            write_to_csv user_infos
+            user_infos.clear
         end
-
-        write_to_csv user_infos
 
         @driver.quit
 
