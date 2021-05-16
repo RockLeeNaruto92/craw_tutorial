@@ -1,0 +1,6 @@
+tmp/*
+!/tmp/.keep
+configs/*
+debug.log
+*.csv
+.vs
