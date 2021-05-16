@@ -4,3 +4,4 @@ configs/*
 debug.log
 *.csv
 .vs
+setting.yml
