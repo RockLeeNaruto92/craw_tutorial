@@ -46,7 +46,7 @@ class MainProcess
 
         (last_info[:category_index]..setting["end_category_index"]).each do |index|
             Log.info "------------------------------------------------------------"
-            home_headlink = home_headlinks[index]
+            home_headlink = home_headlinks.find{|h| h[:index] == index }
             craw_for_a_category home_headlink, index, driver, last_info
         end
 
