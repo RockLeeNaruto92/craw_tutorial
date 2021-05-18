@@ -95,7 +95,11 @@ class MainProcess
         max_page = 200
 
         # If failure, please read file
-        start_page = last_info[:last_page] + 1
+        start_page =  if last_info[:category_index] == index
+          last_info[:last_page] + 1
+        else
+          1
+        end
         count = 0
 
         Log.info "Category index: #{home_headlink[:index]}"
@@ -106,7 +110,7 @@ class MainProcess
         (start_page..max_page).each do |page|
             category_index_link = home_headlink[:link] + (page == 1 ? "" : "?page=#{page}")
             Log.info "Page: #{page}"
-            Log.info "#{index + 1}:\t#{page}\tAccess to #{category_index_link}"
+            Log.info "#{index}:\t#{page}\tAccess to #{category_index_link}"
             driver.get category_index_link
             Log.info "\t\tRetrieve companies link"
 
@@ -130,7 +134,7 @@ class MainProcess
             end
             #result << craw_a_company(baseconnect_companies_list.first, 0, page, driver, home_headlink)
 
-            Log.info "#{index + 1}:\t#{page}:\tCrawed companies count: #{baseconnect_companies_list.size}"
+            Log.info "#{index}:\t#{page}:\tCrawed companies count: #{baseconnect_companies_list.size}"
 
             write_to_spread_sheet home_headlink, result, index, page
 
@@ -152,8 +156,8 @@ class MainProcess
     end
 
     def craw_a_company company, index, page, driver, home_headlink, cp_index
-        Log.info "#{index + 1}:\t#{page}:\t#{cp_index}\tCraw #{company[:name]}"
-        Log.info "#{index + 1}:\t#{page}:\t#{cp_index}\t\t□ Access to #{company[:detail_link]}"
+        Log.info "#{index}:\t#{page}:\t#{cp_index}\tCraw #{company[:name]}"
+        Log.info "#{index}:\t#{page}:\t#{cp_index}\t\t□ Access to #{company[:detail_link]}"
         driver.get(company[:detail_link])
         name = driver.find_elements(:css, ".node__header__text__title").first&.attribute("innerHTML").to_s
 
@@ -598,7 +602,7 @@ class MainProcess
     end
 
     def write_to_spread_sheet home_headlink, result, index, page
-        Log.info "#{index + 1}:\t#{page}:\tWrite to spread sheet"
+        Log.info "#{index}:\t#{page}:\tWrite to spread sheet"
 
         CSV.open("ITCompany#{Time.now.strftime("%Y%m%d")}.csv", "a+") do |csv|
           result.each do |company|
