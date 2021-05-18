@@ -90,7 +90,7 @@ class MainProcess
 
       YAML.load_file(setting_file)
     end
-    
+
     def caculate_max_page quantity
       per_page = 50
       max_page = quantity / per_page
@@ -107,7 +107,7 @@ class MainProcess
 
         # If failure, please read file
         start_page = if last_info[:category_index] == index
-          [:last_page] + 1
+          last_info[:last_page] + 1
         else
           1
         end
