@@ -90,11 +90,20 @@ class MainProcess
 
       YAML.load_file(setting_file)
     end
+    
+    def caculate_max_page quantity
+      per_page = 50
+      max_page = quantity / per_page
+
+      max_page += 1 unless quantity % per_page == 0
+
+      return max_page > 200 ? 200 : max_page
+    end
 
     def craw_for_a_category home_headlink, index, driver, last_info
         baseconnect_companies_list = []
         result = []
-        max_page = 200
+        max_page = caculate_max_page home_headlink[:quantity]
 
         # If failure, please read file
         start_page = if last_info[:category_index] == index
