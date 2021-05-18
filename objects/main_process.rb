@@ -11,7 +11,7 @@ class MainProcess
     def init_selenium_driver
       Log.info "Init driver: will take more than 20 seconds"
 
-      system "start firefox"
+      system "open -a /Applications/Tor\\ Browser.app"
       sleep 20
       tor_proxy = "127.0.0.1:9150"
       options = Selenium::WebDriver::Chrome::Options.new(
@@ -31,7 +31,9 @@ class MainProcess
 
     def quit_driver driver
       driver.quit
-      system "taskkill /F /IM firefox.exe"
+      system "ps -A | grep \"/Applications/Tor Browser.app/Contents/MacOS/[firefox]\" | awk '{print $1}' > ./tmp/pid.txt"
+      pid = File.open("./tmp/pid.txt", "r"){|f| f.readline}.to_i
+      system "kill -9 #{pid}"
     end
 
     def call!
