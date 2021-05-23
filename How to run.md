@@ -42,10 +42,17 @@ doScroll(0, 1000);
 
 ★ Sau khi cái đoạn trên chạy xong, cái log cuối cùng nó xuất ra sẽ là `Stop scroll`. Nếu thấy chữ `Stop scroll` sang bước tiếp theo
 
-### 5. Paste đoạn code lấy data sau đây.
+### 5. Sửa đoạn code lấy data sau đây.
+
+- Bật notepad lên
+- Copy đoạn này ra notepad
+- Thay cái `{group_id}` bằng cái group_id lấy được ở STEP 1
+- Copy đoạn code vừa sửa, paste vào javascript console của browser
 
 ```javascript
-users = document.querySelectorAll("a[href*='/groups/1684597781594440/user/'")
+
+group_id = "{group_id}" // Thay cái này bằng group_id lấy được ở Step 1
+users = document.querySelectorAll("a[href*='/groups/" + group_id + "/user/'")
 
 links = [];
 
