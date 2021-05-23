@@ -1,20 +1,13 @@
 Để lấy các link profile của member trong 1 group thì làm như sau:
 
-### 1. Xác định group_id
-
-- Cấu trúc link của facebook group là: `https://www.facebook.com/groups/{group_id}`
-
-Ví dụ group `Việc làm CNTT Đà Nẵng` thì link facebook group của nó là: `https://www.facebook.com/groups/vieclamCNTTDaNang`
-
-→ group_id là `vieclamCNTTDaNang`. Nhớ lấy cái group_id.
-
-### 2. Truy cập vào trang members của group đó
+### 1. Truy cập vào trang members của group đó, xác định groupid
 
 - Có thể thao tác trực tiếp trên màn hình hoặc là truy cập vào đường link `https://www.facebook.com/groups/{group_id}/members`.
+- Click vào 1 member bất kì. Nó sẽ có link như thế này: `https://www.facebook.com/groups/368698476630471/user/100066637926277`
+- Thì cái số sau `groups/`, trước `/user` chính là cái group_id.
+- Trong trường hợp trên thì group_id là: `368698476630471`
 
-★ Nhớ thay cái `{group_id}` trong đường link trên bằng cái group_id lấy ở trong bước 1.
-
-Ví dụ: Đối với group `Việc làm CNTT Đà Nẵng` thì link members của nó là: `https://www.facebook.com/groups/vieclamCNTTDaNang/members`.
+### 2. Quay trở lại trang members của group đó.
 
 ### 3. Bật javascript console của browser lên
 
