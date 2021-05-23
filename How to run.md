@@ -37,7 +37,7 @@ var doScroll = function(count, max_time){
   }, 1000);
 }
 
-doScroll(0, 1000);
+doScroll(0, 100);
 ```
 
 ★ Sau khi cái đoạn trên chạy xong, cái log cuối cùng nó xuất ra sẽ là `Stop scroll`. Nếu thấy chữ `Stop scroll` sang bước tiếp theo
