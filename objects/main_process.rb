@@ -24,9 +24,15 @@ class MainProcess
           "--proxy-server=socks5://#{tor_proxy}"
       ])
 
+      profile = Selenium::WebDriver::Chrome::Profile.new
+      profile["profile.managed_default_content_settings.images"] = 2
+      profile["profile.managed_default_content_settings.javascript"] = 2
+      profile["profile.managed_default_content_settings.popups"] = 2
+      profile["profile.managed_default_content_settings.plugins"] = 2
+
       Selenium::WebDriver.logger.output = File.join("./tmp", "selenium.log")
       Selenium::WebDriver.logger.level = :warn
-      Selenium::WebDriver.for :chrome, options: options
+      Selenium::WebDriver.for :chrome, options: options, profile: profile
     end
 
     def quit_driver driver
