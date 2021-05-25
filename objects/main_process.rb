@@ -174,19 +174,19 @@ class MainProcess
         Log.info "#{index}:\t#{page}:\t#{cp_index}\tCraw #{company[:name]}"
         Log.info "#{index}:\t#{page}:\t#{cp_index}\t\t□ Access to #{company[:detail_link]}"
         driver.get(company[:detail_link])
-        name = driver.find_elements(:css, ".node__header__text__title").first&.attribute("innerHTML").to_s
-
-        if name.empty?
-          quit_driver driver
-          driver = init_selenium_driver
-        end
+        # name = driver.find_elements(:css, ".node__header__text__title").first&.attribute("innerHTML").to_s
+        #
+        # if name.empty?
+        #   quit_driver driver
+        #   driver = init_selenium_driver
+        # end
 
         other_sites = driver.find_elements(:css, ".node__box__heading__link.node__box__heading__link-othersite a")
         basic_infors = driver.find_elements(:css, ".node__box.node__basicinfo .nodeTable--simple.nodeTable--simple__twoColumn.nodeTable--simple__twoColumn_side.cf dl")
         address_info = get_address_info driver
         {
             category_name: home_headlink[:name],
-            name: driver.find_elements(:css, ".node__header__text__title").first&.attribute("innerHTML").to_s,
+            name: company[:name],
             home_page: other_sites[0]&.attribute("href"),
             contact_page: other_sites[1]&.attribute("href"),
             established_date: get_basic_info(basic_infors, :established_date),
