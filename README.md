@@ -10,6 +10,11 @@
 - Download `rubyinstaller-devkit-2.7.2-1-x64.exe` bằng cách click vào [link này](https://github.com/oneclick/rubyinstaller2/releases/download/RubyInstaller-2.7.2-1/rubyinstaller-devkit-2.7.2-1-x64.exe)
 - Thực hiện cài như bình thường. Các tỉ muội mà chưa biết cách cài vui lòng liên hệ với các huynh đệ bên cạnh để được support.
 
+## Setup TorBrowser for windows
+
+- https://www.torproject.org/download/
+- Install
+
 #### Download hoặc clone source code
 - Download source code hoặc clone source code từ link này.
 - Extract ra thành 1 folder. Gọi là folder `craw`.
