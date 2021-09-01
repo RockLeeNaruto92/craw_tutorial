@@ -55,3 +55,21 @@ bundle install
   - Về kĩ thuật thì truy vấn bằng css_selector để lấy được thông tin cần lấy.
 
 - Code theo flow mà mình đã định nghĩa ở trên. Về cơ bản thì cái này nó không có cái quái gì cả.
+
+#### Sửa code
+
+- `objects/main_process.rb`
+
+```
+def call!
+    Log.info "Start to craw data"
+    driver = init_selenium_driver # Trong method này đã bật chrome, bật tor browser lên rồi
+
+    # Implement chỗ này
+
+    sleep 10
+
+    quit_driver driver
+    Log.info "End MainProcess#call!"
+end
+```
